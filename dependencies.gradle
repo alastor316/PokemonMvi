@@ -1,13 +1,8 @@
 ext{
 
+    library = [:]
 
-
-    // Library Version
-    navigationVersion = '2.4.1'
-    retrofitVersion = '2.9.0'
-
-    // Tools
-    safeArgsPlugin = "androidx.navigation:navigation-safe-args-gradle-plugin:$navigationVersion"
+   // kotlinVersion = '1.6.10'
 
 
 }

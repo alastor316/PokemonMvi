@@ -1,46 +1,65 @@
 package com.marcelo.pokemonmvi
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.marcelo.pokemon.di.PokemonComponentProvider
+import com.marcelo.pokemon.di.PokemonDependencies
+import com.marcelo.pokemon.di.PokemonSubcomponent
+import com.marcelo.pokemon.ui.navigation.PokemonNavGraph
+import com.marcelo.pokemon.utils.InterceptorParams
+import com.marcelo.pokemonmvi.di.DaggerMainComponent
+import com.marcelo.pokemonmvi.di.MainComponent
 import com.marcelo.pokemonmvi.ui.theme.PokemonMviTheme
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 
-class MainActivity : ComponentActivity() {
+
+@ExperimentalCoroutinesApi
+@FlowPreview
+@AndroidEntryPoint
+@ExperimentalAnimationApi
+class MainActivity : AppCompatActivity(), PokemonComponentProvider {
+
+    private val mainComponent: MainComponent by lazy {
+        initializeMainComponent()
+    }
+
+    private fun initializeMainComponent(): MainComponent {
+        val component = (applicationContext as PokemonApp).appComponent
+        return DaggerMainComponent.factory().create(component)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             PokemonMviTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    Greeting("Android")
+                Surface {
+                    PokemonNavGraph(fragmentActivity = this)
                 }
             }
         }
     }
+
+
+    override fun providePokemonComponent(): PokemonSubcomponent = mainComponent
+        .pokemonComponent()
+        .create(
+            pokemonDependencies = PokemonDependencies(
+                interceptorParams = InterceptorParams(
+                    tokenInterceptor = AnyInterceptor(),
+                    unauthorizedInterceptor = AnyInterceptor()
+                ),
+                flavorName = "dummy",
+                isDebug = true,
+                context = this
+            )
+        )
+
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PokemonMviTheme {
-        Greeting("Android")
-    }
-}
+
